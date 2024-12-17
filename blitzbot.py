@@ -34,17 +34,78 @@ DB_NAME = os.getenv('DATABASE_NAME')
 DB_HOST = os.getenv('DATABASE_HOST')
 DB_PORT = os.getenv('DATABASE_PORT')
 
+def databaseConnect():
+    try:
+        #Add connection here
+        conn = pymysql.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASS,
+            db=DB_NAME
+            )
+            
+        if (conn != None):
+            return conn
+        else:
+            raise Exception("Unable to establish connection to server")
+        
+    except:
+        print(f'\nException establishing connection to database! No connection made.')
+        
+def getCursor(conn):
+    if (conn != None):
+        cur = conn.cursor()
+        return cur
+    else:
+        raise Exception("Unable to establish connection to server")
+        
+    
+def databaseDisconnect(cur, conn):
+    #Disconnect here
+    cur.close()
+    conn.close()
+    
+    
+
 class BlitzCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
     @app_commands.command(name='ping', description='Test ping pong')
     async def _ping(self, interaction: discord.Interaction):
-        await interaction.response.send_message("pong")
+        #testing method for connections
+        #If no modifiers, try thing then disconnect
+        conn = databaseConnect()
+        cursor = getCursor(conn)
+        
+        if (cursor != None):
+            response = blitzbot_handler.pingServer(cursor)
+            databaseDisconnect(cursor, conn)
+            await interaction.response.send_message(f"```{response}```")
+        else:
+            await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+            
+            
+            
         
     @app_commands.command(name='findcoach', description='Find a Coach on Nuffle.xyz')
     async def _findCoach(self, interaction: discord.Interaction, coach: str):
-        await interaction.response.send_message("Finding player. TEST.")
+        #Open database connection
+        if (coach != ""):
+            conn = databaseConnect()
+            cursor = getCursor(conn)
+            
+            if (cursor != None):
+                response = blitzbot_handler.findCoach(cursor, coach)
+                databaseDisconnect(cursor, conn)
+                await interaction.response.send_message(f"```{response}```")
+            else:
+                await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+        else:
+            await interaction.response.send_message("findcoach command requires a valid coach name.")
+            
+            
+            
         
     @app_commands.command(name='findteam', description='Find a Team on Nuffle.xyz')
     async def _findTeam(self, interaction: discord.Interaction, team: str):

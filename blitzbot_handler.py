@@ -3,8 +3,26 @@
 # Influenced by Spike bot, written by Poncho_dlv
 
 
-def findTeam():
-    return results
+def pingServer(cursor) -> str:
+    cursor.execute("DESCRIBE coaches")
+    tables = cursor.fetchall()
+    #print(tables)
     
-def findCoach():
-    return results
+    #Parse response as required
+    response = tables
+    
+    return response
+
+def findTeam():
+    return response
+    
+def findCoach(cursor, name):
+    query = "SELECT * FROM coaches WHERE name = %s"
+    
+    cursor.execute(query, name)
+    result = cursor.fetchall()
+    
+    #Massage data and response here
+    response = result
+    
+    return response
