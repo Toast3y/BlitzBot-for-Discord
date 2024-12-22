@@ -109,7 +109,22 @@ class BlitzCog(commands.Cog):
         
     @app_commands.command(name='findteam', description='Find a Team on Nuffle.xyz')
     async def _findTeam(self, interaction: discord.Interaction, team: str):
-        await interaction.response.send_message("Finding Team. TEST.")
+        #Open database connection
+        if (team != ""):
+            conn = databaseConnect()
+            cursor = getCursor(conn)
+            
+            if (cursor != None):
+                response = blitzbot_handler.findTeam(cursor, team)
+                databaseDisconnect(cursor, conn)
+                await interaction.response.send_message(f"```{response}```")
+            else:
+                await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+        else:
+            await interaction.response.send_message("findcoach command requires a valid team name.")
+            
+            
+            
         
     @app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your specified opponent.')
     async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
