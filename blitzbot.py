@@ -71,10 +71,22 @@ class BlitzCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
+    @app_commands.command(name='embedtest', description='test embeds')
+    async def _embedtest(self, interaction: discord.Interaction):
+        #Test to see if sending an embed will work
+        embed1= discord.Embed(title='Test1', color =0xFF5733, url='http://nuffle.xyz', description='Testing if an embed requires extra work')
+        embed1.add_field(name='Team data', value='1000', inline=False)
+        await interaction.response.send_message(embed=embed1)
+        
+        
     @app_commands.command(name='ping', description='Test ping pong')
     async def _ping(self, interaction: discord.Interaction):
         #testing method for connections
         #If no modifiers, try thing then disconnect
+        #Test to see if sending an embed will work
+        #embed1= discord.Embed(title='Test1', color =0xFF5733, url='http://nuffle.xyz', description='Testing if an embed requires extra work')
+        #embed1.add_field(name='Team data', value='1000', inline=False)
+        #await interaction.response.send_message(embed=embed1)
         conn = databaseConnect()
         cursor = getCursor(conn)
         
@@ -98,7 +110,7 @@ class BlitzCog(commands.Cog):
             if (cursor != None):
                 response = blitzbot_handler.findCoach(cursor, coach)
                 databaseDisconnect(cursor, conn)
-                await interaction.response.send_message(f"```{response}```")
+                await interaction.response.send(embed=response)
             else:
                 await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
         else:
@@ -117,7 +129,7 @@ class BlitzCog(commands.Cog):
             if (cursor != None):
                 response = blitzbot_handler.findTeam(cursor, team)
                 databaseDisconnect(cursor, conn)
-                await interaction.response.send_message(f"```{response}```")
+                await interaction.response.send_message(embed=response)
             else:
                 await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
         else:
