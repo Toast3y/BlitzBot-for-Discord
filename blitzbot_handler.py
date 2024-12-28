@@ -6,7 +6,7 @@ import discord
 
 
 def pingServer(cursor) -> str:
-    cursor.execute("DESCRIBE races")
+    cursor.execute("DESCRIBE ladders")
     tables = cursor.fetchall()
     #print(tables)
     
@@ -24,12 +24,33 @@ def findTeam(cursor, name):
     cursor.execute(query, name)
     
     if not cursor.rowcount:
-        response = "Error: Team \'" + name + "\' not found"
+        #response = "Error: Team \'" + name + "\' not found"
+        
+        response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
+        #response.set_thumbnail(url='')
+        response.add_field(name='', value="Unable to find team named " + str(name))
+        
         return response
     else:
         if cursor.rowcount > 1:
             #If more than one result, handle items
-            response = "Duplicate teams found. Handle it!"
+            #response = "Duplicate teams found. Handle it!"
+            
+            results = cursor.fetchall()
+            i = 1
+            
+            response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', description="Multiple teams found, were you looking for:", color =0xFF5733)
+            #response.set_thumbnail(url='')
+            
+            for result in results:
+                coachLink = "http://nuffle.xyz/coaches/" + result[12]
+                teamLink = "http://nuffle.xyz/teams/" + result[13]
+                response.add_field(name='', value= str(i) + ". [" + str(result[0]) + "](" + teamLink + "), coached by: [" + str(result[2]) + "](" + coachLink + ")")
+                i = i+1
+                
+            
+            response.set_footer(text='Powered by Nuffle.xyz')
+            
             return response
         else:
             result = cursor.fetchall()
@@ -43,8 +64,6 @@ def findTeam(cursor, name):
             #        "\nApothecary: {} \t\t\t\tPopularity: {}" \
             #        "\n\nLink: [{}]({})".format(result[0][0], result[0][1], result[0][2], coachLink, result[0][3], result[0][4], result[0][5], result[0][6], result[0][7], result[0][8], result[0][9], result[0][10], result[0][11], result[0][0], teamLink)
             
-            #Massage data and response here
-            #response = result
             
             #response = discord.Embed(title=result[0][0], url=teamLink, description=result[0][0] + ", powered by Nuffle.xyz", color =0xFF5733)
             #response.set_author(name='Nuffle.xyz', url='http://nuffle.xyz')
