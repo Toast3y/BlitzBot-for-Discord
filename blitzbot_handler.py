@@ -6,7 +6,7 @@ import discord
 
 
 def pingServer(cursor) -> str:
-    cursor.execute("DESCRIBE ladders")
+    cursor.execute("DESCRIBE competitions_rounds")
     tables = cursor.fetchall()
     #print(tables)
     
@@ -29,6 +29,8 @@ def findTeam(cursor, name):
         response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
         #response.set_thumbnail(url='')
         response.add_field(name='', value="Unable to find team named " + str(name))
+        
+        response.set_footer(text='Powered by Nuffle.xyz')
         
         return response
     else:
@@ -90,21 +92,70 @@ def findTeam(cursor, name):
     
 
 
-def findCoach(cursor, name) -> str:
-    query = "SELECT * FROM coaches WHERE name = %s"
+def findCoach(cursor, name):
+    query = "SELECT name, id, wins, draws, losses FROM coaches WHERE name = %s"
     
     cursor.execute(query, name)
     
     if not cursor.rowcount:
-        response = "Error: Coach \'" + name + "\' not found"
+        #response = "Error: Coach \'" + name + "\' not found"
+        
+        response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
+        response.add_field(name='', value="Unable to find Coach with name " + str(name))
+        
+        response.set_footer(text='Powered by Nuffle.xyz')
+        
         return response
     else:
-        result = cursor.fetchall()
+        if cursor.rowcount > 1:
+            results = cursor.fetchall()
+            i = 1
+            
+            ##TODO: Add more fields to help filter results in case of duplicate player names
+            response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', description="Multiple coaches found, were you looking for:", color =0xFF5733)
+            
+            for result in results:
+                coachLink = "http://nuffle.xyz/coaches/" + result[1]
+                response.add_field(name='', value= str(i) + ". [" + str(result[0]) + "](" + teamLink + ")", inline = false)
+                response.add_field(name='W-D-L', value= str(result[2]) + "-" + str(result[3]) + "-" + str(result[4])
+                i = i+1
+            
+            response.set_footer(text='Powered by Nuffle.xyz')
+            
+            return response
+            
+        else:
+            result = cursor.fetchall()
+            coachLink = "http://nuffle.xyz/coaches/" + result[1]
+            
+            response = discord.Embed(title= str(result[0][0]) + ", on Nuffle.xyz", url=coachLink, color =0xFF5733)
+            response.add_field(name='W-D-L', value= str(result[2]) + "-" + str(result[3]) + "-" + str(result[4])
+            response.set_footer(text='Powered by Nuffle.xyz')
+            
+            return response
         
-        
-        #Massage data and response here
-        response = result
-        
+    
+    
+def fetchMatchday(cursor, name):
+    query = "WHERE name = %s"
+    cursor.execute(query, name)
+    
+    if not cursor.rowcount:
         return response
+    else:
+        if cursor.rowcount > 1:
+            return response
+        else:
+            return response
     
+def fetchStandings(cursor, name):
+    query = "WHERE name = %s"
+    cursor.execute(query, name)
     
+    if not cursor.rowcount:
+        return response
+    else:
+        if cursor.rowcount > 1:
+            return response
+        else:
+            return response

@@ -71,22 +71,10 @@ class BlitzCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
-    @app_commands.command(name='embedtest', description='test embeds')
-    async def _embedtest(self, interaction: discord.Interaction):
-        #Test to see if sending an embed will work
-        embed1= discord.Embed(title='Test1', color =0xFF5733, url='http://nuffle.xyz', description='Testing if an embed requires extra work')
-        embed1.add_field(name='Team data', value='1000', inline=False)
-        await interaction.response.send_message(embed=embed1)
-        
         
     @app_commands.command(name='ping', description='Test ping pong')
     async def _ping(self, interaction: discord.Interaction):
-        #testing method for connections
-        #If no modifiers, try thing then disconnect
-        #Test to see if sending an embed will work
-        #embed1= discord.Embed(title='Test1', color =0xFF5733, url='http://nuffle.xyz', description='Testing if an embed requires extra work')
-        #embed1.add_field(name='Team data', value='1000', inline=False)
-        #await interaction.response.send_message(embed=embed1)
+        #testing method for connections and database interactions
         conn = databaseConnect()
         cursor = getCursor(conn)
         
@@ -100,7 +88,7 @@ class BlitzCog(commands.Cog):
             
             
         
-    @app_commands.command(name='findcoach', description='Find a Coach on Nuffle.xyz')
+    @app_commands.command(name='findcoach', description='Find a Coach profile on Nuffle.xyz')
     async def _findCoach(self, interaction: discord.Interaction, coach: str):
         #Open database connection
         if (coach != ""):
@@ -110,7 +98,7 @@ class BlitzCog(commands.Cog):
             if (cursor != None):
                 response = blitzbot_handler.findCoach(cursor, coach)
                 databaseDisconnect(cursor, conn)
-                await interaction.response.send(embed=response)
+                await interaction.response.send_message(embed=response)
             else:
                 await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
         else:
@@ -133,14 +121,45 @@ class BlitzCog(commands.Cog):
             else:
                 await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
         else:
-            await interaction.response.send_message("findcoach command requires a valid team name.")
+            await interaction.response.send_message("findteam command requires a valid team name.")
             
             
             
-        
-    @app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your specified opponent.')
-    async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
-        await interaction.response.send_message("Scheduled match. TEST.")
+    @app_commands.command(name='fetchstandings', description='Return a link and top 3 teams in a given competition')
+    async def _fetchstandings(self, interaction: discord.Interaction, league: str):
+        if (league != ""):
+            conn = databaseConnect()
+            cursor = getCursor(conn)
+            
+            if (cursor != None):
+                response = blitzbot_handler.fetchStandings(cursor, league)
+                databaseDisconnect(cursor, conn)
+                await interaction.response.send_message(embed=response)
+            else:
+                await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+        else:
+            await interaction.response.send_message(f"fetchstandings command requires a valid competition name")
+            
+            
+            
+            
+    @app_commands.command(name='fetchmatchday', description='Return the current pairings for a given competition')
+    async def _fetchmatchday(self, interaction: discord.Interaction, league: str):
+        if (league != ""):
+            conn = databaseConnect()
+            cursor = getCursor(conn)
+            
+            if (cursor != None):
+                response = blitzbot_handler.fetchMatchday(cursor, league)
+                databaseDisconnect(cursor, conn)
+                await interaction.response.send_message(embed=response)
+            else:
+                await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+        else:
+            await interaction.response.send_message(f"fetchmatchday command requires a valid competition name")
+    #@app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your specified opponent.')
+    #async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
+    #    await interaction.response.send_message("Scheduled match. TEST.")
         
         
 #class BlitzAdminCog(commands.Cog):
