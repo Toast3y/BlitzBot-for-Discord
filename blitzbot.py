@@ -144,19 +144,20 @@ class BlitzCog(commands.Cog):
             
             
     @app_commands.command(name='fetchmatchday', description='Return the current pairings for a given competition')
-    async def _fetchmatchday(self, interaction: discord.Interaction, league: str):
-        if (league != ""):
+    @app_commands.rename(matchday='round')
+    async def _fetchmatchday(self, interaction: discord.Interaction, league: str, matchday: int):
+        if (league != "" and matchday > 0):
             conn = databaseConnect()
             cursor = getCursor(conn)
             
             if (cursor != None):
-                response = blitzbot_handler.fetchMatchday(cursor, league)
+                response = blitzbot_handler.fetchMatchday(cursor, league, matchday)
                 databaseDisconnect(cursor, conn)
                 await interaction.response.send_message(embed=response)
             else:
                 await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
         else:
-            await interaction.response.send_message(f"fetchmatchday command requires a valid competition name")
+            await interaction.response.send_message(f"fetchmatchday command requires a valid competition name and round")
     #@app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your specified opponent.')
     #async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
     #    await interaction.response.send_message("Scheduled match. TEST.")

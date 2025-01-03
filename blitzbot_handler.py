@@ -6,7 +6,7 @@ import discord
 
 
 def pingServer(cursor) -> str:
-    cursor.execute("DESCRIBE competitions_rounds")
+    cursor.execute("DESCRIBE competitions")
     tables = cursor.fetchall()
     #print(tables)
     
@@ -92,7 +92,7 @@ def findTeam(cursor, name):
     
 
 
-def findCoach(cursor, name):
+def findCoach(cursor, name, matchday):
     query = "SELECT name, id, wins, draws, losses FROM coaches WHERE name = %s"
     
     cursor.execute(query, name)
@@ -116,8 +116,8 @@ def findCoach(cursor, name):
             
             for result in results:
                 coachLink = "http://nuffle.xyz/coaches/" + result[1]
-                response.add_field(name='', value= str(i) + ". [" + str(result[0]) + "](" + teamLink + ")", inline = false)
-                response.add_field(name='W-D-L', value= str(result[2]) + "-" + str(result[3]) + "-" + str(result[4])
+                response.add_field(name='', value= str(i) + ". [" + str(result[0]) + "](" + teamLink + ")", inline = False)
+                #response.add_field(name='W-D-L', value= str(result[2]) + "-" + str(result[3]) + "-" + str(result[4]), inline = True)
                 i = i+1
             
             response.set_footer(text='Powered by Nuffle.xyz')
@@ -126,27 +126,50 @@ def findCoach(cursor, name):
             
         else:
             result = cursor.fetchall()
-            coachLink = "http://nuffle.xyz/coaches/" + result[1]
+            coachLink = "http://nuffle.xyz/coaches/" + result[0][1]
             
             response = discord.Embed(title= str(result[0][0]) + ", on Nuffle.xyz", url=coachLink, color =0xFF5733)
-            response.add_field(name='W-D-L', value= str(result[2]) + "-" + str(result[3]) + "-" + str(result[4])
+            #response.add_field(name='W-D-L', value= str(result[0][2]) + "-" + str(result[0][3]) + "-" + str(result[0][4]))
+            response.add_field(name='', value="See the profile for" + str(result[0][0]) + " on Nuffle.xyz")
             response.set_footer(text='Powered by Nuffle.xyz')
             
             return response
         
     
     
-def fetchMatchday(cursor, name):
-    query = "WHERE name = %s"
-    cursor.execute(query, name)
+def fetchMatchday(cursor, name, matchday):
+    query = "SELECT competition_id, day  FROM competitions_rounds WHERE competitions.name = %s AND day = %s"
+    cursor.execute(query, (name, matchday))
     
     if not cursor.rowcount:
+        response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
+        #response.set_thumbnail(url='')
+        response.add_field(name='', value="Unable to find matchday pairings for competition named " + str(name))
+        response.add_field(name='', value="Please ensure the spelling of the name is correct.")
+        response.set_footer(text='Powered by Nuffle.xyz')
+        
         return response
     else:
-        if cursor.rowcount > 1:
-            return response
-        else:
-            return response
+        results = cursor.fetchall()
+        i = 1
+        
+        leagueLink = "http://nuffle.xyz/competition/" + result[0][0]
+        
+        response = discord.Embed(title="Day * pairings for league", url=leagueLink, color=0xFF5733)
+        response.add_field(name='', value="Pairings for match day *:", inline = False)
+        
+        for result in results:
+            #Home team
+            response.add_field(name='', value=100)
+            
+            #Spacer
+            #if match hasn't been played or scores aren't up to date, display VS instead
+            response.add_field(name='Score1 - Score2', value='')
+            
+            #AwayTeam
+            response.add_field(name='', value = 100)
+        
+        
     
 def fetchStandings(cursor, name):
     query = "WHERE name = %s"
