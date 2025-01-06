@@ -6,9 +6,18 @@ import discord
 
 
 def pingServer(cursor) -> str:
-    cursor.execute("DESCRIBE competitions")
+    #query = "SELECT * FROM competitions_rounds INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id WHERE competitions.name = %s LIMIT 3"
+    query = """SELECT competition_id, round, home_team_id, home_score, away_team_id, away_score, competitions_rounds.status, 
+        (SELECT name FROM teams WHERE competitions_rounds.home_team_id = teams.id), (SELECT name FROM teams WHERE competitions_rounds.away_team_id = teams.id),
+        (SELECT coach_id FROM teams WHERE competitions_rounds.home_team_id = teams.id), (SELECT coach_id FROM teams WHERE competitions_rounds.away_team_id = teams.id)
+        FROM competitions_rounds 
+        INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id 
+        WHERE competitions.name = %s AND round = %s"""
+    leaguename="EireBB C1 S1 Div B"
+    cursor.execute(query, (leaguename, 4))
+    
     tables = cursor.fetchall()
-    #print(tables)
+    print(tables)
     
     #Parse response as required
     response = tables
