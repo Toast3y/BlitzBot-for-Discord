@@ -8,10 +8,13 @@ import discord
 def pingServer(cursor) -> str:
     #query = "SELECT * FROM competitions_rounds INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id WHERE competitions.name = %s LIMIT 3"
     query = """SELECT competition_id, round, home_team_id, home_score, away_team_id, away_score, competitions_rounds.status, 
-        (SELECT name FROM teams WHERE competitions_rounds.home_team_id = teams.id), (SELECT name FROM teams WHERE competitions_rounds.away_team_id = teams.id),
-        (SELECT coach_id FROM teams WHERE competitions_rounds.home_team_id = teams.id), (SELECT coach_id FROM teams WHERE competitions_rounds.away_team_id = teams.id)
+        hometeam.name, awayteam.name, homecoach.id, homecoach.name, awaycoach.id, awaycoach.name
         FROM competitions_rounds 
-        INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id 
+        JOIN competitions ON competitions_rounds.competition_id = competitions.id
+        JOIN teams AS hometeam ON competitions_rounds.home_team_id = hometeam.id
+        JOIN teams AS awayteam ON competitions_rounds.away_team_id = awayteam.id
+        JOIN coaches AS homecoach ON hometeam.coach_id = homecoach.id
+        JOIN coaches AS awaycoach ON awayteam.coach_id = awaycoach.id
         WHERE competitions.name = %s AND round = %s"""
     leaguename="EireBB C1 S1 Div B"
     cursor.execute(query, (leaguename, 4))
@@ -23,6 +26,9 @@ def pingServer(cursor) -> str:
     response = tables
     
     return response
+
+
+
 
 
 
@@ -99,6 +105,10 @@ def findTeam(cursor, name):
             return response
     
     
+    
+    
+    
+    
 
 
 def findCoach(cursor, name, matchday):
@@ -146,15 +156,28 @@ def findCoach(cursor, name, matchday):
         
     
     
+    
+    
+    
+    
 def fetchMatchday(cursor, name, matchday):
-    query = "SELECT competition_id, day  FROM competitions_rounds WHERE competitions.name = %s AND day = %s"
+    query = """SELECT competition_id, round, competitions.name, home_team_id, home_score, away_team_id, away_score, competitions_rounds.status, 
+        hometeam.name, awayteam.name, homecoach.id, homecoach.name, awaycoach.id, awaycoach.name
+        FROM competitions_rounds 
+        JOIN competitions ON competitions_rounds.competition_id = competitions.id
+        JOIN teams AS hometeam ON competitions_rounds.home_team_id = hometeam.id
+        JOIN teams AS awayteam ON competitions_rounds.away_team_id = awayteam.id
+        JOIN coaches AS homecoach ON hometeam.coach_id = homecoach.id
+        JOIN coaches AS awaycoach ON awayteam.coach_id = awaycoach.id
+        WHERE competitions.name = %s AND round = %s"""
+    
     cursor.execute(query, (name, matchday))
     
     if not cursor.rowcount:
         response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
         #response.set_thumbnail(url='')
-        response.add_field(name='', value="Unable to find matchday pairings for competition named " + str(name))
-        response.add_field(name='', value="Please ensure the spelling of the name is correct.")
+        response.add_field(name='', value="Unable to find matchday pairings for competition named " + str(name), inline= False)
+        response.add_field(name='', value="Please ensure the spelling of the name is correct.", inline = False)
         response.set_footer(text='Powered by Nuffle.xyz')
         
         return response
@@ -162,21 +185,39 @@ def fetchMatchday(cursor, name, matchday):
         results = cursor.fetchall()
         i = 1
         
-        leagueLink = "http://nuffle.xyz/competition/" + result[0][0]
+        leagueLink = "http://nuffle.xyz/competition/" + results[0][0]
         
-        response = discord.Embed(title="Day * pairings for league", url=leagueLink, color=0xFF5733)
-        response.add_field(name='', value="Pairings for match day *:", inline = False)
+        response = discord.Embed(title="Round " + str(results[0][1]) + " pairings for " + str(results[0][2]), url=leagueLink, color=0xFF5733)
+        response.add_field(name='', value="Pairings for round " + str(results[0][1]) + ":", inline = False)
         
         for result in results:
+            hometeam_link = "http://nuffle.xyz/teams/" + result[3]
+            awayteam_link = "http://nuffle.xyz/teams/" + result[5]
+            homecoach_link = "http://nuffle.xyz/coaches/" + result[10]
+            awaycoach_link = "http://nuffle.xyz/coaches/" + result[12]
+            
             #Home team
-            response.add_field(name='', value=100)
+            response.add_field(name=str(result[8]), value="[" + str(result[11]) + "](" + homecoach_link + ")", inline = True)
             
             #Spacer
             #if match hasn't been played or scores aren't up to date, display VS instead
-            response.add_field(name='Score1 - Score2', value='')
+            
+            if (result[7] != 'validated'):
+                #docombo
+                response.add_field(name="VS", value="", inline = True)
+            else:
+                #docombo
+                response.add_field(name= str(result[4]) +  " - " + str(result[6]), value="", inline = True)
+                
             
             #AwayTeam
-            response.add_field(name='', value = 100)
+            response.add_field(name=str(result[9]), value="[" + str(result[13]) + "](" + awaycoach_link + ")", inline = True)
+        
+        response.set_footer(text='Powered by Nuffle.xyz')
+            
+        return response
+        
+        
         
         
     
