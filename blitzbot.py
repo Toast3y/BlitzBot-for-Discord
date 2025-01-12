@@ -72,7 +72,7 @@ class BlitzCog(commands.Cog):
         self.bot = bot
         
         
-    @app_commands.command(name='ping', description='Test ping pong')
+    """@app_commands.command(name='ping', description='Test ping pong')
     async def _ping(self, interaction: discord.Interaction):
         #testing method for connections and database interactions
         conn = databaseConnect()
@@ -84,7 +84,7 @@ class BlitzCog(commands.Cog):
             await interaction.response.send_message(f"```{response}```")
         else:
             await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
-            
+            """
             
             
         
@@ -125,7 +125,7 @@ class BlitzCog(commands.Cog):
             
             
             
-    @app_commands.command(name='fetchstandings', description='Return a link and top 3 teams in a given competition')
+    @app_commands.command(name='fetchstandings', description='Return a link and top 4 teams in a given competition')
     async def _fetchstandings(self, interaction: discord.Interaction, league: str):
         if (league != ""):
             conn = databaseConnect()

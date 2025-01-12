@@ -5,27 +5,23 @@
 import discord
 
 
-def pingServer(cursor) -> str:
-    #query = "SELECT * FROM competitions_rounds INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id WHERE competitions.name = %s LIMIT 3"
-    query = """SELECT competition_id, round, home_team_id, home_score, away_team_id, away_score, competitions_rounds.status, 
-        hometeam.name, awayteam.name, homecoach.id, homecoach.name, awaycoach.id, awaycoach.name
-        FROM competitions_rounds 
-        JOIN competitions ON competitions_rounds.competition_id = competitions.id
-        JOIN teams AS hometeam ON competitions_rounds.home_team_id = hometeam.id
-        JOIN teams AS awayteam ON competitions_rounds.away_team_id = awayteam.id
-        JOIN coaches AS homecoach ON hometeam.coach_id = homecoach.id
-        JOIN coaches AS awaycoach ON awayteam.coach_id = awaycoach.id
-        WHERE competitions.name = %s AND round = %s"""
-    leaguename="EireBB C1 S1 Div B"
-    cursor.execute(query, (leaguename, 4))
-    
-    tables = cursor.fetchall()
-    print(tables)
-    
-    #Parse response as required
-    response = tables
-    
-    return response
+#def pingServer(cursor) -> str:
+#    #query = "SELECT * FROM competitions_rounds INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id WHERE competitions.name = %s LIMIT 3"
+#    #query = """DESCRIBE competitions_leaderboards"""
+#    query = """SELECT * FROM competitions_leaderboards
+#        JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
+#        WHERE competitions.name = %s
+#        LIMIT 2"""
+#    leaguename="EireBB C1 S1 Div B"
+#    cursor.execute(query, (leaguename))
+#    
+#    tables = cursor.fetchall()
+#    print(tables)
+#    
+#    #Parse response as required
+#    response = tables
+#    
+#    return response
 
 
 
@@ -73,13 +69,6 @@ def findTeam(cursor, name):
             result = cursor.fetchall()
             coachLink = "http://nuffle.xyz/coaches/" + result[0][12]
             teamLink = "http://nuffle.xyz/teams/" + result[0][13]
-            
-            #response = "Team Name: {} \t\t\t\tRerolls: {}" \
-            #        "\nCoach: [{}]({}) \t\t\t\tW-D-L: {}-{}-{}" \
-            #        "\n\nTeam Value: {} \t\t\t\tTreasury: {}" \
-            #        "\nAss. Coaches: {} \t\t\t\tCheerleaders: {}" \
-            #        "\nApothecary: {} \t\t\t\tPopularity: {}" \
-            #        "\n\nLink: [{}]({})".format(result[0][0], result[0][1], result[0][2], coachLink, result[0][3], result[0][4], result[0][5], result[0][6], result[0][7], result[0][8], result[0][9], result[0][10], result[0][11], result[0][0], teamLink)
             
             
             #response = discord.Embed(title=result[0][0], url=teamLink, description=result[0][0] + ", powered by Nuffle.xyz", color =0xFF5733)
@@ -162,7 +151,7 @@ def findCoach(cursor, name, matchday):
     
 def fetchMatchday(cursor, name, matchday):
     query = """SELECT competition_id, round, competitions.name, home_team_id, home_score, away_team_id, away_score, competitions_rounds.status, 
-        hometeam.name, awayteam.name, homecoach.id, homecoach.name, awaycoach.id, awaycoach.name
+        hometeam.name, awayteam.name, homecoach.id, homecoach.name, awaycoach.id, awaycoach.name, competitions.created_at
         FROM competitions_rounds 
         JOIN competitions ON competitions_rounds.competition_id = competitions.id
         JOIN teams AS hometeam ON competitions_rounds.home_team_id = hometeam.id
@@ -222,13 +211,41 @@ def fetchMatchday(cursor, name, matchday):
         
     
 def fetchStandings(cursor, name):
-    query = "WHERE name = %s"
+    query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name FROM competitions_leaderboards
+        JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
+        JOIN teams ON competitions_leaderboards.team_id = teams.id
+        JOIN coaches ON teams.coach_id = coaches.id
+        WHERE competitions.name = %s
+        ORDER BY points DESC
+        LIMIT 4"""
     cursor.execute(query, name)
     
     if not cursor.rowcount:
+        response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
+        #response.set_thumbnail(url='')
+        response.add_field(name='', value="Unable to find standings for competition named " + str(name), inline= False)
+        response.add_field(name='', value="Please ensure the spelling of the name is correct.", inline = False)
+        response.set_footer(text='Powered by Nuffle.xyz')
         return response
     else:
-        if cursor.rowcount > 1:
-            return response
-        else:
-            return response
+        results = cursor.fetchall()
+        i = 1
+        
+        leagueLink = "http://nuffle.xyz/competition/" + results[0][0]
+        
+        response = discord.Embed(title= str(name) + " Standings", url=leagueLink, color=0xFF5733)
+        response.add_field(name='', value="Current Top 4 Standings for " + str(name) + ":", inline = False)
+        
+        for result in results:
+            coachlink = "http://nuffle.xyz/coaches/" + result[7]
+            teamlink = "http://nuffle.xyz/teams/" + result[1]
+            
+            response.add_field(name= str(i) + ". " + result[6], value = "[" + str(result[8]) + "](" + coachlink + ")", inline = True)
+            response.add_field(name= "POINTS", value=str(result[2]), inline = True)
+            response.add_field(name= "W-D-L", value=str(result[3]) + "-" + str(result[4]) + "-" + str(result[5]), inline = True)
+            
+            i = i+1
+            
+        response.set_footer(text='See the full table at Nuffle.xyz')
+        
+        return response
