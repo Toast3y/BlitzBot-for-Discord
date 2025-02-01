@@ -100,7 +100,7 @@ def findTeam(cursor, name):
     
 
 
-def findCoach(cursor, name, matchday):
+def findCoach(cursor, name):
     query = "SELECT name, id, wins, draws, losses FROM coaches WHERE name = %s"
     
     cursor.execute(query, name)

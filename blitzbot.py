@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 # legacy library, remove when bug fixed
 import audioop
 
+#Imports to separate and manage code
+import blitzbot_data
 import blitzbot_handler
 
 
@@ -72,19 +74,19 @@ class BlitzCog(commands.Cog):
         self.bot = bot
         
         
-    """@app_commands.command(name='ping', description='Test ping pong')
-    async def _ping(self, interaction: discord.Interaction):
-        #testing method for connections and database interactions
-        conn = databaseConnect()
-        cursor = getCursor(conn)
-        
-        if (cursor != None):
-            response = blitzbot_handler.pingServer(cursor)
-            databaseDisconnect(cursor, conn)
-            await interaction.response.send_message(f"```{response}```")
-        else:
-            await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
-            """
+    #@app_commands.command(name='ping', description='Test ping pong')
+    #async def _ping(self, interaction: discord.Interaction):
+    #    #testing method for connections and database interactions
+    #    conn = databaseConnect()
+    #    cursor = getCursor(conn)
+    #    
+    #    if (cursor != None):
+    #        response = blitzbot_handler.pingServer(cursor)
+    #        databaseDisconnect(cursor, conn)
+    #        await interaction.response.send_message(f"```{response}```")
+    #    else:
+    #        await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+    #        
             
             
         
@@ -158,11 +160,17 @@ class BlitzCog(commands.Cog):
                 await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
         else:
             await interaction.response.send_message(f"fetchmatchday command requires a valid competition name and round")
+            
+            
+            
+            
     #@app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your specified opponent.')
     #async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
     #    await interaction.response.send_message("Scheduled match. TEST.")
         
-        
+      
+
+      
 #class BlitzAdminCog(commands.Cog):
 #    def __init__(self, bot: commands.Bot):
 #        self.bot = bot
@@ -170,7 +178,33 @@ class BlitzCog(commands.Cog):
 #    @app_commands.command(name='admintask', description='Admin test adding a cog', guild_ids = GUILD_ID)
 #    async def _adminTask(self, interaction: discord.Interaction):
 #        await interaction.response.send_message("Admin task run. TEST.")
-#        
+#   
+
+     
+
+
+class BlitzDataCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        
+    @app_commands.command(name='fetchmatchdayplain', description='Return match day pairing as plaintext')
+    @app_commands.rename(matchday='round')
+    async def _fetchmatchdayplain(self, interaction: discord.Interaction, league: str, matchday: int):
+        if (league != "" and matchday > 0):
+            conn = databaseConnect()
+            cursor = getCursor(conn)
+            
+            if (cursor != None):
+                response = blitzbot_data.fetchMatchday_data(cursor, league, matchday)
+                databaseDisconnect(cursor, conn)
+                await interaction.response.send_message(f"```{response}```")
+            else:
+                await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+        else:
+            await interaction.response.send_message(f"fetchmatchdayplain command requires a valid competition name and round")
+            
+            
+
 
 class BlitzBot(commands.Bot):
     def __init__(self) -> None:
@@ -179,6 +213,7 @@ class BlitzBot(commands.Bot):
 		
     async def setup_hook(self) -> None:
         await self.add_cog(BlitzCog(self))
+        await self.add_cog(BlitzDataCog(self))
         #await self.add_cog(BlitzAdminCog(self))
         self.tree.copy_global_to(guild = discord.Object(id=GUILD_ID))
         await self.tree.sync()
