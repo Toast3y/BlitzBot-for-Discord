@@ -4,6 +4,7 @@
 
 import os
 import discord
+import textwrap
 from discord import app_commands
 from discord.ext import commands
 import pymysql
@@ -35,6 +36,10 @@ DB_PASS = os.getenv('DATABASE_PASS')
 DB_NAME = os.getenv('DATABASE_NAME')
 DB_HOST = os.getenv('DATABASE_HOST')
 DB_PORT = os.getenv('DATABASE_PORT')
+#LOCALDB_USER = os.getenv('LOCAL_DATABASE_USER')
+#LOCALDB_PASS = os.getenv('LOCAL_DATABASE_PASS')
+#LOCALDB_NAME = os.getenv('LOCAL_DATABASE_NAME')
+#LOCALDB_HOST = os.getenv('LOCAL_DATABASE_HOST')
 
 def databaseConnect():
     try:
@@ -54,13 +59,31 @@ def databaseConnect():
     except:
         print(f'\nException establishing connection to database! No connection made.')
         
+
+        
+##Connection to local database. getCursor() and disconnect should work for both.
+#def localDatabaseConnect():
+#    try:
+#        conn = pymysql.connect(
+#            host = LOCALDB_HOST
+#            user = LOCALDB_USER
+#            password = LOCALDB_PASS
+#            db=LOCALDB_NAME
+#        )
+#        
+#        if (conn != None):
+#            return conn
+#        else:
+#            raise Exception("Unable to establish connection to local database")
+            
+            
+#Manage cursor and disconnect from database.
 def getCursor(conn):
     if (conn != None):
         cur = conn.cursor()
         return cur
     else:
         raise Exception("Unable to establish connection to server")
-        
     
 def databaseDisconnect(cur, conn):
     #Disconnect here
@@ -68,28 +91,23 @@ def databaseDisconnect(cur, conn):
     conn.close()
     
     
-
+    
+    
+##Cog for main functionality within Blitzbot, fetching and returning data.
+##Many may be made redundant once server configuration commands go live.
 class BlitzCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
         
-    #@app_commands.command(name='ping', description='Test ping pong')
-    #async def _ping(self, interaction: discord.Interaction):
-    #    #testing method for connections and database interactions
-    #    conn = databaseConnect()
-    #    cursor = getCursor(conn)
-    #    
-    #    if (cursor != None):
-    #        response = blitzbot_handler.pingServer(cursor)
-    #        databaseDisconnect(cursor, conn)
-    #        await interaction.response.send_message(f"```{response}```")
-    #    else:
-    #        await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
-    #        
-            
-            
-        
+    ##TODO: Set up command structure for server and channel integrated commands
+    
+    #Standings command
+    #Matches command
+    
+    
+    
+    #findcoach command
     @app_commands.command(name='findcoach', description='Find a Coach profile on Nuffle.xyz')
     async def _findCoach(self, interaction: discord.Interaction, coach: str):
         #Open database connection
@@ -108,7 +126,7 @@ class BlitzCog(commands.Cog):
             
             
             
-        
+    #findteam command
     @app_commands.command(name='findteam', description='Find a Team on Nuffle.xyz')
     async def _findTeam(self, interaction: discord.Interaction, team: str):
         #Open database connection
@@ -127,6 +145,7 @@ class BlitzCog(commands.Cog):
             
             
             
+    #fetchstandings command
     @app_commands.command(name='fetchstandings', description='Return a link and top 4 teams in a given competition')
     async def _fetchstandings(self, interaction: discord.Interaction, league: str):
         if (league != ""):
@@ -144,7 +163,7 @@ class BlitzCog(commands.Cog):
             
             
             
-            
+    #fetchMatchday command
     @app_commands.command(name='fetchmatchday', description='Return the current pairings for a given competition')
     @app_commands.rename(matchday='round')
     async def _fetchmatchday(self, interaction: discord.Interaction, league: str, matchday: int):
@@ -162,15 +181,10 @@ class BlitzCog(commands.Cog):
             await interaction.response.send_message(f"fetchmatchday command requires a valid competition name and round")
             
             
-            
-            
-    #@app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your specified opponent.')
-    #async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
-    #    await interaction.response.send_message("Scheduled match. TEST.")
         
       
 
-      
+##Cog for administration and self-serve commands for Nuffle.xyz      
 #class BlitzAdminCog(commands.Cog):
 #    def __init__(self, bot: commands.Bot):
 #        self.bot = bot
@@ -180,13 +194,90 @@ class BlitzCog(commands.Cog):
 #        await interaction.response.send_message("Admin task run. TEST.")
 #   
 
-     
+##Cog for scheduling matches and various commands to assist.
+#class BlitzScheduleCog(commands.Cog):
+#    def __init__(self, bot: commands.Bot):
+#        self.bot = bot
+#        
+#    @app_commands.command(name='schedulematch', description='Set a reminder for your match, pinging you and your opponent an hour in advance')
+#    async def _scheduleMatch(self, interaction: discord.Interaction, opponent: discord.Member):
+#        return
+
+    #cancelmatch
+    
 
 
-class BlitzDataCog(commands.Cog):
+
+##Cog for standard help commands, such as a command list and configuration 
+class BlitzHelpCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
+        
+    #about command
+    @app_commands.command(name='about', description='Learn more about BlitzBot')
+    async def _about(self, interaction: discord.Interaction):
+        response = """
+            ================
+            Blitzbot for Discord, powered by Nuffle.xyz
+            Designed by Christopher Dunne AKA Toast3y
+            Nuffle by Galentio, inspired by SpikeBot by Poncho_dlv
+            ================
+                    
+            Blitzbot is an administrative tool to help Blood Bowl league administrators to display vital information for their leagues right in the Discord client.
+            Display league standings, provide player and match information, and export plaintext data for external programs.
+            Type /commands to see a list of all commands.
+            For setup instructions, please see: <insert link here>
+                    
+            ================
+            Help keep Blitzbot and Nuffle running, and consider donating:
+                    
+            Toast3y (BlitzBot) - <insert link here>
+            Galentio (Nuffle.xyz) - https://ko-fi.com/galentio
+            ================"""
+        await interaction.response.send_message(f"```{textwrap.dedent(response)}```", ephemeral=True)
+        
+        
+    #commands command
+    @app_commands.command(name='commands', description='See a helpful list of commands for BlitzBot')
+    async def _commands(self, interaction: discord.Interaction):
+        response = """
+            Commands for BlitzBot (note that some commands may be restricted to certain users)
+            
+            Help commands:
+            /about - Learn more about BlitzBot
+            /commands - See a helpful list of commands for Blitzbot
+            /support - Find links to help support development on Blitzbot and Nuffle
+            
+            Standard commands:
+            /findcoach - Find a Coach profile on Nuffle.xyz
+            /findteam - Find a Team on Nuffle.xyz
+            /fetchmatchday - Return the current pairings for a given competition
+            /fetchstandings - Return a link and top 4 teams in a given competition
+            
+            Data export commands:
+            /fetchmatchdayplain - Return match day pairing as plaintext
+            
+            """
+        await interaction.response.send_message(f"```{textwrap.dedent(response)}```", ephemeral=True)
+        
+    
+    #Support command
+    @app_commands.command(name='support', description='Find links to help support development on Blitzbot and Nuffle')
+    async def _support(self, interaction: discord.Interaction):
+        response = """
+            If you want to help support BlitzBot, please find my Ko-Fi link here: <insert link here>
+        """
+        await interaction.response.send_message(f"```{textwrap.dedent(response)}```")
+
+
+
+##Cog for defining raw data exports, for use with Excel and other external programs.
+class BlitzDataCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+    
+    #fetchmatchdayplain command
     @app_commands.command(name='fetchmatchdayplain', description='Return match day pairing as plaintext')
     @app_commands.rename(matchday='round')
     async def _fetchmatchdayplain(self, interaction: discord.Interaction, league: str, matchday: int):
@@ -199,13 +290,36 @@ class BlitzDataCog(commands.Cog):
                 databaseDisconnect(cursor, conn)
                 await interaction.response.send_message(f"```{response}```")
             else:
-                await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+                await interaction.response.send_message(f"A database connection could not be established. Please try again later.", ephemeral = True)
         else:
-            await interaction.response.send_message(f"fetchmatchdayplain command requires a valid competition name and round")
+            await interaction.response.send_message(f"fetchmatchdayplain command requires a valid competition name and round", ephemeral = True)
             
             
+    #matchdayplain command
+    #@app_commands.command(name='matchdayplain', description='Return competition pairings in Plaintext for this channels registered league')
+    #async def _matchdayplain(self, interaction: discord.Interaction):
+    #    #TODO: Add functionality using server DB to specify data to return
+    #    return
 
 
+##Cog for configuring server settings and enabling functions on a per-guild basis    
+class BlitzConfigCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        
+    
+    #setchannelcomp
+    
+    #removechannelcomp
+    
+    #settimezone
+    
+    
+    
+
+
+
+##Main class definition for Blitzbot, asynchronously adds cogs to expose slash commands
 class BlitzBot(commands.Bot):
     def __init__(self) -> None:
         super().__init__(command_prefix="!", intents=discord.Intents(messages=True, message_content=True, members=True, guilds=True))
@@ -214,6 +328,8 @@ class BlitzBot(commands.Bot):
     async def setup_hook(self) -> None:
         await self.add_cog(BlitzCog(self))
         await self.add_cog(BlitzDataCog(self))
+        #await self.add_cog(BlitzScheduleCog(self))
+        await self.add_cog(BlitzHelpCog(self))
         #await self.add_cog(BlitzAdminCog(self))
         self.tree.copy_global_to(guild = discord.Object(id=GUILD_ID))
         await self.tree.sync()
