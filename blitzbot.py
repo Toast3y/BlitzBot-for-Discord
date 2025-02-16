@@ -232,7 +232,7 @@ class BlitzHelpCog(commands.Cog):
             ================
             Help keep Blitzbot and Nuffle running, and consider donating:
                     
-            Toast3y (BlitzBot) - <insert link here>
+            Toast3y (BlitzBot) - https://ko-fi.com/toast3y
             Galentio (Nuffle.xyz) - https://ko-fi.com/galentio
             ================"""
         await interaction.response.send_message(f"```{textwrap.dedent(response)}```", ephemeral=True)
@@ -266,9 +266,9 @@ class BlitzHelpCog(commands.Cog):
     @app_commands.command(name='support', description='Find links to help support development on Blitzbot and Nuffle')
     async def _support(self, interaction: discord.Interaction):
         response = """
-            If you want to help support BlitzBot, please find my Ko-Fi link here: <insert link here>
+            If you want to help support BlitzBot, please find my Ko-Fi link here: https://ko-fi.com/toast3y
         """
-        await interaction.response.send_message(f"```{textwrap.dedent(response)}```")
+        await interaction.response.send_message(f"{textwrap.dedent(response)}")
 
 
 
@@ -331,6 +331,8 @@ class BlitzBot(commands.Bot):
         #await self.add_cog(BlitzScheduleCog(self))
         await self.add_cog(BlitzHelpCog(self))
         #await self.add_cog(BlitzAdminCog(self))
+        
+        ##Copy commands to development server first
         self.tree.copy_global_to(guild = discord.Object(id=GUILD_ID))
         await self.tree.sync()
         

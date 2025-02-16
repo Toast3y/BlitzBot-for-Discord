@@ -10,7 +10,7 @@ providing hyperlinks to relevant information and pages for a discerning coach to
 
 ## How to run BlitzBot
 
-- BlitzBot requires Python 3.13 or higher
+- BlitzBot requires Python 3.11 or higher
 
 1. Install all dependencies:
 
@@ -22,4 +22,8 @@ providing hyperlinks to relevant information and pages for a discerning coach to
 	
 	- Install MariaDB (for database calls and features) - Latest installers can be found at: https://mariadb.org
 	
-2. Add env variables to establish data connections. 
+2. Add env variables to establish data connections in env file.
+
+3. Run BlitzBot by running "python blitzbot.py" from the command line.
+
+
