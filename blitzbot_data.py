@@ -6,6 +6,9 @@
 
 import discord
 
+
+
+#Plaintext export of matchday data for a given round
 def fetchMatchday_data(cursor, name, matchday):
     
     query = """SELECT competition_id, round, competitions.name, home_team_id, away_team_id, 

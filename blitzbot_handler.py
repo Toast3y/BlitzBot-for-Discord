@@ -138,7 +138,7 @@ def findCoach(cursor, name):
             
             response = discord.Embed(title= str(result[0][0]) + ", on Nuffle.xyz", url=coachLink, color =0xFF5733)
             #response.add_field(name='W-D-L', value= str(result[0][2]) + "-" + str(result[0][3]) + "-" + str(result[0][4]))
-            response.add_field(name='', value="See the profile for" + str(result[0][0]) + " on Nuffle.xyz")
+            response.add_field(name='', value="See the profile for " + str(result[0][0]) + " on Nuffle.xyz")
             response.set_footer(text='Powered by Nuffle.xyz')
             
             return response

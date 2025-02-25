@@ -1,6 +1,6 @@
 # BlitzBot 1.0, for Nuffle.xyz
 # Written  by Toast3y, aka Chris Dunne
-# Influenced by Spike bot, written by 
+# Influenced by Spike bot, written by Poncho_dlv
 
 import os
 import discord
@@ -15,6 +15,7 @@ import audioop
 #Imports to separate and manage code
 import blitzbot_data
 import blitzbot_handler
+import blitzbot_config
 
 
 # Initialize variables, define discord intents
@@ -36,11 +37,12 @@ DB_PASS = os.getenv('DATABASE_PASS')
 DB_NAME = os.getenv('DATABASE_NAME')
 DB_HOST = os.getenv('DATABASE_HOST')
 DB_PORT = os.getenv('DATABASE_PORT')
-#LOCALDB_USER = os.getenv('LOCAL_DATABASE_USER')
-#LOCALDB_PASS = os.getenv('LOCAL_DATABASE_PASS')
-#LOCALDB_NAME = os.getenv('LOCAL_DATABASE_NAME')
-#LOCALDB_HOST = os.getenv('LOCAL_DATABASE_HOST')
+LOCALDB_USER = os.getenv('LOCAL_DATABASE_USER')
+LOCALDB_PASS = os.getenv('LOCAL_DATABASE_PASS')
+LOCALDB_NAME = os.getenv('LOCAL_DATABASE_NAME')
+LOCALDB_HOST = os.getenv('LOCAL_DATABASE_HOST')
 
+#Connection to remote database, ran during command parsing.
 def databaseConnect():
     try:
         #Add connection here
@@ -62,19 +64,22 @@ def databaseConnect():
 
         
 ##Connection to local database. getCursor() and disconnect should work for both.
-#def localDatabaseConnect():
-#    try:
-#        conn = pymysql.connect(
-#            host = LOCALDB_HOST
-#            user = LOCALDB_USER
-#            password = LOCALDB_PASS
-#            db=LOCALDB_NAME
-#        )
-#        
-#        if (conn != None):
-#            return conn
-#        else:
-#            raise Exception("Unable to establish connection to local database")
+def localDatabaseConnect():
+    try:
+        conn = pymysql.connect(
+            host = LOCALDB_HOST,
+            user = LOCALDB_USER,
+            password = LOCALDB_PASS,
+            db=LOCALDB_NAME
+        )
+        
+        if (conn != None):
+            return conn
+        else:
+            raise Exception("Unable to establish connection to local database")
+            
+    except:
+        print(f'\nException establish connection to local database! No connection made.')
             
             
 #Manage cursor and disconnect from database.
@@ -188,11 +193,18 @@ class BlitzCog(commands.Cog):
 #class BlitzAdminCog(commands.Cog):
 #    def __init__(self, bot: commands.Bot):
 #        self.bot = bot
-#        
-#    @app_commands.command(name='admintask', description='Admin test adding a cog', guild_ids = GUILD_ID)
-#    async def _adminTask(self, interaction: discord.Interaction):
-#        await interaction.response.send_message("Admin task run. TEST.")
-#   
+        
+    #@app_commands.command(name='admintask', description='Admin test adding a cog', guild_ids = GUILD_ID)
+    #async def _adminTask(self, interaction: discord.Interaction):
+    #    #await interaction.response.send_message("Admin task run. TEST.")
+    #    conn = localDatabaseConnect()
+    #    cursor = getCursor(conn)
+    #    
+    #    if(cursor != None):
+    #        await interaction.response.send_message(f"Database Connection Established")
+    #    else:
+    #        await interaction.response.send_message(f"No connection established.")
+   
 
 ##Cog for scheduling matches and various commands to assist.
 #class BlitzScheduleCog(commands.Cog):
@@ -255,6 +267,9 @@ class BlitzHelpCog(commands.Cog):
             /fetchmatchday - Return the current pairings for a given competition
             /fetchstandings - Return a link and top 4 teams in a given competition
             
+            Configuration commands:
+            /registerserver - Register your server with BlitzBot to enable advanced functionality
+            
             Data export commands:
             /fetchmatchdayplain - Return match day pairing as plaintext
             
@@ -307,8 +322,74 @@ class BlitzConfigCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
+    #registerserver
+    @app_commands.command(name='registerserver', description='Register your server with BlitzBot to enable advanced functionality')
+    async def _registerserver(self, interaction: discord.Interaction):
+        #await interaction.response.send_message("Admin task run. TEST.")
+        conn = localDatabaseConnect()
+        cursor = getCursor(conn)
+        
+        if(cursor != None):
+            #await interaction.response.send_message(f"Database Connection Established")
+            
+            #Get details from the interaction
+            discord_id = str(interaction.guild_id)
+            server_name = interaction.guild.name
+            #channel_id = interaction.channel_id
+            #user_id = interaction.user.id
+            
+            #Check if the record exists, add it if not:
+            if (blitzbot_config.getRegisterServer(cursor, discord_id) != None):
+                await interaction.response.send_message(f"Error: This server is already registered with BlitzBot!")
+            else:
+                if (blitzbot_config.registerServer(cursor, discord_id, server_name) == True):
+                    await interaction.response.send_message(f"Thanks for registering! Channel settings can now be configured.")
+                    conn.commit()
+                else:
+                    await interaction.response.send_message(f"Error registering server at this time. Please try again later.")
+                    conn.rollback()
+            
+            databaseDisconnect(cursor, conn)
+            
+        else:
+            await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
+    
+    
+    
     
     #setchannelcomp
+    @app_commands.command(name='setcompetition', description='Register this channel to a specific competition on Nuffle.xyz')
+    async def _setcompetition(self, interaction: discord.Interaction, competition: str):
+        if (competition != ""):
+            #Check if competition is valid on Nuffle
+            conn = databaseConnect()
+            cursor = getCursor(conn)
+            
+            if(cursor != None):
+                comp = blitzbot_config.getNuffleCompetition(cursor, competition)
+                databaseDisconnect(cursor, conn)
+                
+                #Local database add if results are good.
+                if(comp != None):
+                    #Open connection, pass it to function, close connection
+                    #localconn = localDatabaseConnect()
+                    #localcursor = getCursor(localConn)
+                    
+                    #channel_id = interaction.channel_id
+                    
+                    #blitzbot_config.setChannelCompetition(localcursor, )
+                    
+                    #databaseDisconnect(localcursor, localconn)
+                    
+                    await interaction.response.send_message(comp)
+                    
+                    ##Validation
+                else:
+                    await interaction.response.send_message(f"Unable to find competition with associated name for pairing. Please check spelling of league and try again.")
+            else:
+                await interaction.response.send_message(f"Unable to contact Nuffle Database. Please try again later.")
+        else:
+            await interaction.response.send_message(f"setcompetition requires a valid Nuffle.xyz registered league")
     
     #removechannelcomp
     
@@ -328,6 +409,7 @@ class BlitzBot(commands.Bot):
     async def setup_hook(self) -> None:
         await self.add_cog(BlitzCog(self))
         await self.add_cog(BlitzDataCog(self))
+        await self.add_cog(BlitzConfigCog(self))
         #await self.add_cog(BlitzScheduleCog(self))
         await self.add_cog(BlitzHelpCog(self))
         #await self.add_cog(BlitzAdminCog(self))
