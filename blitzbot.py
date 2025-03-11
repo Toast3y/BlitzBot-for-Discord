@@ -361,33 +361,45 @@ class BlitzConfigCog(commands.Cog):
     @app_commands.command(name='setcompetition', description='Register this channel to a specific competition on Nuffle.xyz')
     async def _setcompetition(self, interaction: discord.Interaction, competition: str):
         if (competition != ""):
-            #Check if competition is valid on Nuffle
-            conn = databaseConnect()
-            cursor = getCursor(conn)
+            #Check local DB before connecting and testing on Nuffle
+            localConn = localDatabaseConnect()
+            localCursor = getCursor(localConn)
             
-            if(cursor != None):
-                comp = blitzbot_config.getNuffleCompetition(cursor, competition)
-                databaseDisconnect(cursor, conn)
+            if(localCursor != None):
+                regServer = blitzbot_config.getRegisterServer(localCursor, str(interaction.guild_id))
                 
                 #Local database add if results are good.
-                if(comp != None):
+                if(regServer != None):
                     #Open connection, pass it to function, close connection
-                    #localconn = localDatabaseConnect()
-                    #localcursor = getCursor(localConn)
+                    conn = databaseConnect()
+                    cursor = getCursor(conn)
                     
-                    #channel_id = interaction.channel_id
-                    
-                    #blitzbot_config.setChannelCompetition(localcursor, )
-                    
-                    #databaseDisconnect(localcursor, localconn)
-                    
-                    await interaction.response.send_message(comp)
-                    
-                    ##Validation
+                    if (cursor != None):
+                        comp = blitzbot_config.getNuffleCompetition(cursor, competition)
+                        databaseDisconnect(cursor, conn)
+                        
+                        if (comp != None):
+                            
+                            #The server is registered and can accept channel registrations, so pass this to the handler.
+                            if(blitzbot_config.setChannelCompetition(localCursor, str(regServer[0]), str(regServer[1]), str(interaction.channel_id), comp) == True):
+                                #Successful
+                                localConn.commit()
+                                await interaction.response.send_message(f"League " + competition + " Registered to this channel.")
+                            else:
+                                #Unsuccessful
+                                localConn.rollback()
+                                await interaction.response.send_message(f"Unable to register league at this time. Please try again later.")
+                                
+                            databaseDisconnect(localCursor, localConn)
+                            
+                        else:
+                            await interaction.response.send_message(f"Error: Unable to find league on Nuffle.xyz. Please check spelling and try again.")
+                    else:
+                        await interaction.response.send_message(f"Error: Unable to validate league on Nuffle at this time. Please try again later.")
                 else:
-                    await interaction.response.send_message(f"Unable to find competition with associated name for pairing. Please check spelling of league and try again.")
+                    await interaction.response.send_message(f"Error: Server is not registered to BlitzBot services. Please run /registerserver as a server administrator, or contact Toast3y if issue persists.")
             else:
-                await interaction.response.send_message(f"Unable to contact Nuffle Database. Please try again later.")
+                await interaction.response.send_message(f"Unable to contact Local Database. Please contact a League Admin to report this issue.")
         else:
             await interaction.response.send_message(f"setcompetition requires a valid Nuffle.xyz registered league")
     
