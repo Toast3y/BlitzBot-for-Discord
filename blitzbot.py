@@ -108,7 +108,67 @@ class BlitzCog(commands.Cog):
     ##TODO: Set up command structure for server and channel integrated commands
     
     #Standings command
+    @app_commands.command(name='standings', description="Return a link and top 4 teams in the channels competition")
+    async def _standings(self, interaction: discord.Interaction):
+        localConn = localDatabaseConnect()
+        localCursor = getCursor(localConn)
+        
+        if(localCursor != None):
+            league = blitzbot_config.getChannelCompetition(localCursor, str(interaction.channel_id))
+            databaseDisconnect(localCursor, localConn)
+            
+            #print(str(league[0][1]))
+            #print(str(league[1]))
+            
+            if (league != None):
+                conn = databaseConnect()
+                cursor = getCursor(conn)
+                
+                if (cursor != None):
+                    response = blitzbot_handler.standings(cursor, league[0][1])
+                    databaseDisconnect(cursor, conn)
+                    await interaction.response.send_message(embed=response)
+                else:
+                    await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+            else:
+                await interaction.response.send_message(f"Error: No associated league found for this channel. Use /fetchstandings or contact a server admin if issue persists.")
+            
+        else:
+            await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
+        
+        
+        
+        
     #Matches command
+    @app_commands.command(name='matches', description="Return the current matches in this competitions round.")
+    async def _matches(self, interaction: discord.Interaction):
+        localConn = localDatabaseConnect()
+        localCursor = getCursor(localConn)
+        
+        if(localCursor != None):
+            league = blitzbot_config.getChannelCompetition(localCursor, str(interaction.channel_id))
+            databaseDisconnect(localCursor, localConn)
+            
+            ##TODO EVERYTHING ELSE HERE
+            
+        else:
+            await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
+        
+        
+        
+        
+    #Team command
+    #@app.commands.command(name='team', description="Search for a local team in your league")
+    #async def _team(self, interaction: discord.Interaction, team: str):
+    #    localConn = localDatabaseConnect()
+    #    localCursor = getCursor(localConn)
+    #    
+    #    if(localCursor != None):
+    #        #retrieve results
+    #        
+    #    else:
+    #        await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
+    #    
     
     
     

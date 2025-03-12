@@ -69,7 +69,7 @@ def getRegisterServer(cursor, guild_id):
     
 #Check if a server channel is registered for returning leagues. Returns the associated ID, or None if not registered
 def getChannelCompetition(cursor, channel_id):
-    query = """SELECT channel_id FROM channel_leagues WHERE channel_id = %s"""
+    query = """SELECT channel_id, league_id FROM channel_leagues WHERE channel_id = %s"""
     
     cursor.execute(query, (channel_id))
     
@@ -77,7 +77,7 @@ def getChannelCompetition(cursor, channel_id):
         return None
     else:
         results = cursor.fetchall()
-        return results [0][0]
+        return results
         
         
 #Check on Nuffle if a competition exists. Return the ID if true, None if not.        

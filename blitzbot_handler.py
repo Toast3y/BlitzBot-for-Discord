@@ -28,7 +28,8 @@ import discord
 
 
 
-
+#findTeam command query
+#Finds a team from the provided team name, searches all of Nuffle
 def findTeam(cursor, name):
     query = "SELECT name, rerolls, (SELECT name FROM coaches WHERE teams.coach_id = coaches.id), wins, draws, losses, value, cash, assistant_coaches, cheerleaders, IF('Apothecary' = 1, 'Yes', 'No') AS 'Apothecary', popularity, coach_id, id, (SELECT name FROM races WHERE teams.race_id = races.id) FROM teams WHERE name = %s"
     
@@ -99,7 +100,7 @@ def findTeam(cursor, name):
     
     
 
-
+#FindCoach - Find a coach searching all of nuffle by name
 def findCoach(cursor, name):
     query = "SELECT name, id, wins, draws, losses FROM coaches WHERE name = %s"
     
@@ -148,7 +149,7 @@ def findCoach(cursor, name):
     
     
     
-    
+#Fetch Matchday Fetch specific pairings from a given league    
 def fetchMatchday(cursor, name, matchday):
     query = """SELECT competition_id, round, competitions.name, home_team_id, home_score, away_team_id, away_score, competitions_rounds.status, 
         hometeam.name, awayteam.name, homecoach.id, homecoach.name, awaycoach.id, awaycoach.name, competitions.created_at
@@ -209,7 +210,7 @@ def fetchMatchday(cursor, name, matchday):
         
         
         
-    
+#fetchStandings - Return a standings table for any league by name.
 def fetchStandings(cursor, name):
     query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name FROM competitions_leaderboards
         JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
@@ -235,6 +236,56 @@ def fetchStandings(cursor, name):
         
         response = discord.Embed(title= str(name) + " Standings", url=leagueLink, color=0xFF5733)
         response.add_field(name='', value="Current Top 4 Standings for " + str(name) + ":", inline = False)
+        
+        for result in results:
+            coachlink = "http://nuffle.xyz/coaches/" + result[7]
+            teamlink = "http://nuffle.xyz/teams/" + result[1]
+            
+            response.add_field(name= str(i) + ". " + result[6], value = "[" + str(result[8]) + "](" + coachlink + ")", inline = True)
+            response.add_field(name= "POINTS", value=str(result[2]), inline = True)
+            response.add_field(name= "W-D-L", value=str(result[3]) + "-" + str(result[4]) + "-" + str(result[5]), inline = True)
+            
+            i = i+1
+            
+        response.set_footer(text='See the full table at Nuffle.xyz')
+        
+        return response
+        
+        
+        
+        
+        
+######## USER FRIENDLY QUERIES ########
+#Most are copied and adapted from above code.
+
+
+
+#Standings - Fetch standings using the paired channel and league IDs
+def standings(cursor, league_id):
+    query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name FROM competitions_leaderboards
+        JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
+        JOIN teams ON competitions_leaderboards.team_id = teams.id
+        JOIN coaches ON teams.coach_id = coaches.id
+        WHERE competition_id = %s
+        ORDER BY points DESC
+        LIMIT 4"""
+    cursor.execute(query, league_id)
+    
+    if not cursor.rowcount:
+        response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
+        #response.set_thumbnail(url='')
+        response.add_field(name='', value="Unable to find standings for competition paired in this channel.", inline= False)
+        response.add_field(name='', value="Please contact a league administrator.", inline = False)
+        response.set_footer(text='Powered by Nuffle.xyz')
+        return response
+    else:
+        results = cursor.fetchall()
+        i = 1
+        
+        leagueLink = "http://nuffle.xyz/competition/" + results[0][0]
+        
+        response = discord.Embed(title="League Standings", url=leagueLink, color=0xFF5733)
+        response.add_field(name='', value="Current Top 4 Standings for this league:", inline = False)
         
         for result in results:
             coachlink = "http://nuffle.xyz/coaches/" + result[7]
