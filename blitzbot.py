@@ -149,7 +149,18 @@ class BlitzCog(commands.Cog):
             league = blitzbot_config.getChannelCompetition(localCursor, str(interaction.channel_id))
             databaseDisconnect(localCursor, localConn)
             
-            ##TODO EVERYTHING ELSE HERE
+            if(league != None):
+                conn = databaseConnect()
+                cursor = getCursor(conn)
+                
+                if(cursor != None):
+                    response = blitzbot_handler.matches(cursor, league[0][1])
+                    databaseDisconnect(cursor, conn)
+                    await interaction.response.send_message(embed=response)
+                else:
+                    await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+            else:
+                await interaction.response.send_message(f"Error: No associated league found for this channel. Use /fetchstandings or contact a server admin if issue persists.")
             
         else:
             await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
@@ -385,35 +396,37 @@ class BlitzConfigCog(commands.Cog):
     #registerserver
     @app_commands.command(name='registerserver', description='Register your server with BlitzBot to enable advanced functionality')
     async def _registerserver(self, interaction: discord.Interaction):
-        #await interaction.response.send_message("Admin task run. TEST.")
-        conn = localDatabaseConnect()
-        cursor = getCursor(conn)
-        
-        if(cursor != None):
-            #await interaction.response.send_message(f"Database Connection Established")
+        if (interaction.user.guild_permissions.administrator == True):
+            #await interaction.response.send_message("Admin task run. TEST.")
+            conn = localDatabaseConnect()
+            cursor = getCursor(conn)
             
-            #Get details from the interaction
-            discord_id = str(interaction.guild_id)
-            server_name = interaction.guild.name
-            #channel_id = interaction.channel_id
-            #user_id = interaction.user.id
-            
-            #Check if the record exists, add it if not:
-            if (blitzbot_config.getRegisterServer(cursor, discord_id) != None):
-                await interaction.response.send_message(f"Error: This server is already registered with BlitzBot!")
-            else:
-                if (blitzbot_config.registerServer(cursor, discord_id, server_name) == True):
-                    await interaction.response.send_message(f"Thanks for registering! Channel settings can now be configured.")
-                    conn.commit()
+            if(cursor != None):
+                #await interaction.response.send_message(f"Database Connection Established")
+                
+                #Get details from the interaction
+                discord_id = str(interaction.guild_id)
+                server_name = interaction.guild.name
+                #channel_id = interaction.channel_id
+                #user_id = interaction.user.id
+                
+                #Check if the record exists, add it if not:
+                if (blitzbot_config.getRegisterServer(cursor, discord_id) != None):
+                    await interaction.response.send_message(f"Error: This server is already registered with BlitzBot!")
                 else:
-                    await interaction.response.send_message(f"Error registering server at this time. Please try again later.")
-                    conn.rollback()
-            
-            databaseDisconnect(cursor, conn)
-            
+                    if (blitzbot_config.registerServer(cursor, discord_id, server_name) == True):
+                        await interaction.response.send_message(f"Thanks for registering! Channel settings can now be configured.")
+                        conn.commit()
+                    else:
+                        await interaction.response.send_message(f"Error registering server at this time. Please try again later.")
+                        conn.rollback()
+                
+                databaseDisconnect(cursor, conn)
+                
+            else:
+                await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
         else:
-            await interaction.response.send_message(f"Unable to contact BlitzBot Database. Please try again later.")
-    
+            await interaction.response.send_message(f"Error: This command can only be used by a server administrator")
     
     
     
