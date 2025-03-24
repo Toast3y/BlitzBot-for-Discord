@@ -175,7 +175,7 @@ def fetchMatchday(cursor, name, matchday):
         results = cursor.fetchall()
         #i = 1
         
-        leagueLink = "http://nuffle.xyz/competition/" + results[0][0]
+        leagueLink = "http://nuffle.xyz/leaderboards/" + results[0][0]
         
         response = discord.Embed(title="Round " + str(results[0][1]) + " pairings for " + str(results[0][2]), url=leagueLink, color=0xFF5733)
         response.add_field(name='', value="Pairings for round " + str(results[0][1]) + ":", inline = False)
@@ -232,7 +232,7 @@ def fetchStandings(cursor, name):
         results = cursor.fetchall()
         i = 1
         
-        leagueLink = "http://nuffle.xyz/competition/" + results[0][0]
+        leagueLink = "http://nuffle.xyz/leaderboards/" + results[0][0]
         
         response = discord.Embed(title= str(name) + " Standings", url=leagueLink, color=0xFF5733)
         response.add_field(name='', value="Current Top 4 Standings for " + str(name) + ":", inline = False)
@@ -282,7 +282,7 @@ def standings(cursor, league_id):
         results = cursor.fetchall()
         i = 1
         
-        leagueLink = "http://nuffle.xyz/competition/" + results[0][0]
+        leagueLink = "http://nuffle.xyz/leaderboards/" + results[0][0]
         
         response = discord.Embed(title= str(results[0][9]) + " Standings", url=leagueLink, color=0xFF5733)
         response.add_field(name='', value="Current Top 4 Standings for " + str(results[0][9]) + ":", inline = False)
@@ -349,7 +349,7 @@ def matches(cursor, league_id):
         
         #i = 1
         
-        leagueLink = "http://nuffle.xyz/competition/" + pairings[0][0]
+        leagueLink = "http://nuffle.xyz/leaderboards/" + pairings[0][0]
         
         response = discord.Embed(title="Round " + str(pairings[0][1]) + " pairings for " + str(pairings[0][2]), url=leagueLink, color=0xFF5733)
         response.add_field(name='', value="Pairings for round " + str(pairings[0][1]) + ":", inline = False)
@@ -380,3 +380,74 @@ def matches(cursor, league_id):
         response.set_footer(text='Powered by Nuffle.xyz')
             
         return response
+        
+        
+        
+        
+#Team - Find and display team stats for teams in the current division
+#def team(cursor, name, league_id):
+#    query = """SELECT name, rerolls, (SELECT name FROM coaches WHERE teams.coach_id = coaches.id), wins, draws, losses, value, cash, assistant_coaches, cheerleaders, IF('Apothecary' = 1, 'Yes', 'No') AS 'Apothecary', popularity, coach_id, id, (SELECT name FROM races WHERE teams.race_id = races.id)
+#    FROM teams
+#    WHERE 
+#    AND name LIKE %s"""
+#    
+#    cursor.execute(query, name)
+#    
+#    if not cursor.rowcount:
+#        #response = "Error: Team \'" + name + "\' not found"
+#        
+#        response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', color =0xFF5733)
+#        #response.set_thumbnail(url='')
+#        response.add_field(name='', value="Unable to find team named " + str(name))
+#        
+#        response.set_footer(text='Powered by Nuffle.xyz')
+#        
+#        return response
+#    else:
+#        if cursor.rowcount > 1:
+#            #If more than one result, handle items
+#            #response = "Duplicate teams found. Handle it!"
+#            
+#            results = cursor.fetchall()
+#            i = 1
+#            
+#            response = discord.Embed(title='Nuffle.xyz', url='http://nuffle.xyz', description="Multiple teams found, were you looking for:", color =0xFF5733)
+#            #response.set_thumbnail(url='')
+#            
+#            for result in results:
+#                coachLink = "http://nuffle.xyz/coaches/" + result[12]
+#                teamLink = "http://nuffle.xyz/teams/" + result[13]
+#                response.add_field(name='', value= str(i) + ". [" + str(result[0]) + "](" + teamLink + "), coached by: [" + str(result[2]) + "](" + coachLink + ")")
+#                i = i+1
+#                
+#            
+#            response.set_footer(text='Powered by Nuffle.xyz')
+#            
+#            return response
+#        else:
+#            result = cursor.fetchall()
+#            coachLink = "http://nuffle.xyz/coaches/" + result[0][12]
+#            teamLink = "http://nuffle.xyz/teams/" + result[0][13]
+#            
+#            
+#            #response = discord.Embed(title=result[0][0], url=teamLink, description=result[0][0] + ", powered by Nuffle.xyz", color =0xFF5733)
+#            #response.set_author(name='Nuffle.xyz', url='http://nuffle.xyz')
+#            response = discord.Embed(title=result[0][0], url=teamLink, color =0xFF5733)
+#            #response.set_thumbnail(url='')
+#            response.add_field(name='Coach:', value="[" + str(result[0][2]) +"]("+ coachLink + ")", inline=True)
+#            response.add_field(name='W-D-L:', value=str(result[0][3]) + '-' + str(result[0][4]) + '-' + str(result[0][5]), inline=True)
+#            response.add_field(name='', value='', inline=False)
+#            response.add_field(name='Race:', value=result[0][14], inline=True)
+#            response.add_field(name='Rerolls:', value=result[0][1], inline=True)
+#            response.add_field(name='--------', value='', inline=False)
+#            response.add_field(name='Team Value:', value=result[0][6], inline=True)
+#            response.add_field(name='Treasury:', value=result[0][7], inline=True)
+#            response.add_field(name='Ass. Coaches:', value=result[0][8], inline=True)
+#            response.add_field(name='Popularity:', value=result[0][11], inline=True)
+#            response.add_field(name='Apothecary:', value=result[0][10], inline=True)
+#            response.add_field(name='Cheerleaders:', value=result[0][9], inline=True)
+#            
+#            response.set_footer(text='Powered by Nuffle.xyz')
+#            
+#            
+#            return response
