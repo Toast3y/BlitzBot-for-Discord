@@ -315,7 +315,7 @@ class BlitzHelpCog(commands.Cog):
             ================
             Help keep Blitzbot and Nuffle running, and consider donating:
                     
-            Toast3y (BlitzBot) - https://ko-fi.com/toast3y
+            Toast3y (BlitzBot) - https://ko-fi.com/toast3y - https://bsky.app/profile/toast3y.bsky.social
             Galentio (Nuffle.xyz) - https://ko-fi.com/galentio
             ================"""
         await interaction.response.send_message(f"```{textwrap.dedent(response)}```", ephemeral=True)
@@ -328,31 +328,50 @@ class BlitzHelpCog(commands.Cog):
             Commands for BlitzBot (note that some commands may be restricted to certain users)
             
             Help commands:
-            /about - Learn more about BlitzBot
-            /commands - See a helpful list of commands for Blitzbot
-            /support - Find links to help support development on Blitzbot and Nuffle
+            /about - Learn more about BlitzBot.
+            /commands - See a helpful list of commands for Blitzbot.
+            /support - Find links to help support development on Blitzbot and Nuffle.
             
             Standard commands:
-            /findcoach - Find a Coach profile on Nuffle.xyz
-            /findteam - Find a Team on Nuffle.xyz
-            /fetchmatchday - Return the current pairings for a given competition
-            /fetchstandings - Return a link and top 4 teams in a given competition
-            
-            Configuration commands:
-            /registerserver - Register your server with BlitzBot to enable advanced functionality
-            
-            Data export commands:
-            /fetchmatchdayplain - Return match day pairing as plaintext
-            
+            /standings - Return Top 4 standings for this channels associated competition.
+            /matches - Return the current match pairings for this channels associated competition.
+            /team - Search and return a named team from teams associated with this league.
+            /coach - Search and return a coach profile associated with this league.
             """
         await interaction.response.send_message(f"```{textwrap.dedent(response)}```", ephemeral=True)
+        
+        
+    @app_commands.command(name='admin', description='Return a list of admin help and commands.')
+    async def _admin(self, interaction: discord.Interaction):
+        response = """
+            Administration commands for BlitzBot. Covers configuration commands as well as standard commands for searching Nuffle
+            
+            Admin Help commands:
+            /admin - Return admin specific commands, for league commissioners and server administrators.
+            
+            Search Commands:
+            /fetchMatchday - Fetch a specific set of pairings for a given competition on Nuffle.
+            /fetchStandings - Fetch current standings for a given competition on Nuffle.
+            /findcoach - Find a specific coach profile from BB3. Note: There may be duplicate named coaches. Use /coach for local coaches.
+            /findteam - Find a specific team profile from BB3. Note: There may be duplicate named teams. Use /team for local teams.
+            
+            Configuration commands:
+            /registerserver - Register your server with BlitzBot to enable advanced functionality.
+            /setcompetition - Set channel to a specific competition for queries on Nuffle. Re-use command to set new competition in a channel.
+            
+            Data export commands:
+            /fetchmatchdayplain - Return match day pairings as plaintext for data export.
+            
+            Got a feature idea? Let me know! Socials available in 
+            """    
+        await interaction.response.send_message(f"{textwrap.dedent(response)}")
         
     
     #Support command
     @app_commands.command(name='support', description='Find links to help support development on Blitzbot and Nuffle')
     async def _support(self, interaction: discord.Interaction):
         response = """
-            If you want to help support BlitzBot, please find my Ko-Fi link here: https://ko-fi.com/toast3y
+            If you want to help support BlitzBot, you can buy me a coffee at my Ko-Fi link here: https://ko-fi.com/toast3y
         """
         await interaction.response.send_message(f"{textwrap.dedent(response)}")
 
