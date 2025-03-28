@@ -362,7 +362,7 @@ class BlitzHelpCog(commands.Cog):
             Data export commands:
             /fetchmatchdayplain - Return match day pairings as plaintext for data export.
             
-            Got a feature idea? Let me know! Socials available in 
+            Got a feature idea? Let me know! Socials available in /about command.
             """    
         await interaction.response.send_message(f"```{textwrap.dedent(response)}```")
         
