@@ -178,8 +178,19 @@ def fetchMatchday(cursor, name, matchday):
         leagueLink = "http://nuffle.xyz/leaderboards/" + results[0][0]
         
         response = discord.Embed(title="Round " + str(results[0][1]) + " pairings for " + str(results[0][2]), url=leagueLink, color=0xFF5733)
-        response.add_field(name='', value="Pairings for round " + str(results[0][1]) + ":", inline = False)
         
+        
+        #Check if pairings need to be shortened down.
+        if len(results) > 8:
+            results = pruneMatches(results, 8)
+            response.add_field(name='', value="Too many results, shortlist of pairings for round " + str(results[0][1]) + ":", inline = False)
+            response.set_footer(text='See full pairings at Nuffle.xyz')
+        else:
+            response.add_field(name='', value="Pairings for round " + str(results[0][1]) + ":", inline = False)
+            response.set_footer(text='Powered by Nuffle.xyz')
+        
+        
+
         for result in results:
             hometeam_link = "http://nuffle.xyz/teams/" + result[3]
             awayteam_link = "http://nuffle.xyz/teams/" + result[5]
@@ -203,7 +214,7 @@ def fetchMatchday(cursor, name, matchday):
             #AwayTeam
             response.add_field(name=str(result[9]), value="[" + str(result[13]) + "](" + awaycoach_link + ")", inline = True)
         
-        response.set_footer(text='Powered by Nuffle.xyz')
+        #response.set_footer(text='Powered by Nuffle.xyz')
             
         return response
         
@@ -352,7 +363,17 @@ def matches(cursor, league_id):
         leagueLink = "http://nuffle.xyz/leaderboards/" + pairings[0][0]
         
         response = discord.Embed(title="Round " + str(pairings[0][1]) + " pairings for " + str(pairings[0][2]), url=leagueLink, color=0xFF5733)
-        response.add_field(name='', value="Pairings for round " + str(pairings[0][1]) + ":", inline = False)
+        
+        #Check if pairings need to be shortened down.
+        if len(pairings) > 8:
+            pairings = pruneMatches(pairings, 8)
+            response.add_field(name='', value="Too many results, shortlist of pairings for round " + str(pairings[0][1]) + ":", inline = False)
+            response.set_footer(text='See full pairings at Nuffle.xyz')
+        else:
+            response.add_field(name='', value="Pairings for round " + str(pairings[0][1]) + ":", inline = False)
+            response.set_footer(text='Powered by Nuffle.xyz')
+        
+        #response.add_field(name='', value="Pairings for round " + str(pairings[0][1]) + ":", inline = False)
         
         for result in pairings:
             hometeam_link = "http://nuffle.xyz/teams/" + result[3]
@@ -377,7 +398,7 @@ def matches(cursor, league_id):
             #AwayTeam
             response.add_field(name=str(result[9]), value="[" + str(result[13]) + "](" + awaycoach_link + ")", inline = True)
         
-        response.set_footer(text='Powered by Nuffle.xyz')
+        #response.set_footer(text='Powered by Nuffle.xyz')
             
         return response
         
@@ -451,3 +472,31 @@ def matches(cursor, league_id):
 #            
 #            
 #            return response
+
+
+            
+
+#pruneMatches() - Return a pruned list of match pairings focused only on matches yet to be played.
+#If it can't, return a list only as big as needed.
+def pruneMatches(results, limit):
+    
+    pruneList = []
+    
+    for result in results:
+        if (result[7] != 'validated'):
+            pruneList.append(result)
+    
+        
+    #Prune further if needed
+    if len(pruneList) > limit:
+        i = 0
+        pruneList2 = []
+        
+        for item in pruneList:
+            pruneList2.append(item)
+            if len(pruneList2) >= limit:
+                break
+                
+        pruneList = pruneList2
+            
+    return pruneList

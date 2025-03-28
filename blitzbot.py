@@ -364,7 +364,7 @@ class BlitzHelpCog(commands.Cog):
             
             Got a feature idea? Let me know! Socials available in 
             """    
-        await interaction.response.send_message(f"{textwrap.dedent(response)}")
+        await interaction.response.send_message(f"```{textwrap.dedent(response)}```")
         
     
     #Support command
