@@ -7,13 +7,13 @@ import discord
 
 #def pingServer(cursor) -> str:
 #    #query = "SELECT * FROM competitions_rounds INNER JOIN competitions ON competitions_rounds.competition_id = competitions.id WHERE competitions.name = %s LIMIT 3"
-#    #query = """DESCRIBE competitions_leaderboards"""
-#    query = """SELECT * FROM competitions_leaderboards
-#        JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
-#        WHERE competitions.name = %s
-#        LIMIT 2"""
+#    query = """DESCRIBE competitions_leaderboards"""
+#    #query = """SELECT * FROM competitions_leaderboards
+#    #    JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
+#    #    WHERE competitions.name = %s
+#    #    LIMIT 2"""
 #    leaguename="EireBB C1 S1 Div B"
-#    cursor.execute(query, (leaguename))
+#    cursor.execute(query)
 #    
 #    tables = cursor.fetchall()
 #    print(tables)
@@ -223,12 +223,12 @@ def fetchMatchday(cursor, name, matchday):
         
 #fetchStandings - Return a standings table for any league by name.
 def fetchStandings(cursor, name):
-    query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name FROM competitions_leaderboards
+    query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name, touchdowns_differential, casualties_differential FROM competitions_leaderboards
         JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
         JOIN teams ON competitions_leaderboards.team_id = teams.id
         JOIN coaches ON teams.coach_id = coaches.id
         WHERE competitions.name = %s
-        ORDER BY points DESC
+        ORDER BY points DESC, touchdowns_differential DESC, casualties_differential DESC
         LIMIT 4"""
     cursor.execute(query, name)
     
@@ -273,12 +273,12 @@ def fetchStandings(cursor, name):
 
 #Standings - Fetch standings using the paired channel and league IDs
 def standings(cursor, league_id):
-    query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name, competitions.name FROM competitions_leaderboards
+    query = """SELECT competition_id, team_id, points, competitions_leaderboards.wins, competitions_leaderboards.draws, competitions_leaderboards.losses, teams.name, teams.coach_id, coaches.name, competitions.name, touchdowns_differential, casualties_differential FROM competitions_leaderboards
         JOIN competitions ON competitions.id = competitions_leaderboards.competition_id
         JOIN teams ON competitions_leaderboards.team_id = teams.id
         JOIN coaches ON teams.coach_id = coaches.id
         WHERE competition_id = %s
-        ORDER BY points DESC
+        ORDER BY points DESC, touchdowns_differential DESC, casualties_differential DESC
         LIMIT 4"""
     cursor.execute(query, league_id)
     

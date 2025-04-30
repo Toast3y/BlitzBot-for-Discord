@@ -104,6 +104,20 @@ class BlitzCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
+    #@app_commands.command(name='ping', description='Test ping pong')
+    #async def _ping(self, interaction: discord.Interaction):
+    #    #testing method for connections and database interactions
+    #    conn = databaseConnect()
+    #    cursor = getCursor(conn)
+    #    
+    #    if (cursor != None):
+    #        response = blitzbot_handler.pingServer(cursor)
+    #        databaseDisconnect(cursor, conn)
+    #        await interaction.response.send_message(f"```{response}```")
+    #    else:
+    #        await interaction.response.send_message(f"A database connection could not be established. Please try again later.")
+       
+        
         
     ##TODO: Set up command structure for server and channel integrated commands
     
